@@ -15,19 +15,6 @@
 }
 
 
-.fa {
-display: inline-block;
-width: 60px;
-text-align: center;
-text-transform: none;
-font-weight: normal;
-font-style: normal;
-font-variant: normal;
-line-height: 1;
-speak: none;
--webkit-font-smoothing: antialiased;
-}
-
 
 /* Icomoon.com */
 
@@ -226,7 +213,7 @@ input.gn-search:focus {
 		height: 60px;
 }
 
-.gn-icon::before {
+.gn-icon::before, .fa {
 		display: inline-block;
 		width: 60px;
 		text-align: center;
