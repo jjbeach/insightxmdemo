@@ -14,6 +14,21 @@
 		src: url("ecoicons.eot?#iefix") format("embedded-opentype"), url("ecoicons.woff") format("woff"), url("ecoicons.ttf") format("truetype"), url("ecoicons.svg#ecoicons") format("svg");
 }
 
+
+.fa {
+display: inline-block;
+width: 60px;
+text-align: center;
+text-transform: none;
+font-weight: normal;
+font-style: normal;
+font-variant: normal;
+line-height: 1;
+speak: none;
+-webkit-font-smoothing: antialiased;
+}
+
+
 /* Icomoon.com */
 
 .gn-menu-main,
