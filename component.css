@@ -213,7 +213,7 @@ input.gn-search:focus {
 		height: 60px;
 }
 
-.gn-icon::before, .fa {
+.gn-icon::before {
 		display: inline-block;
 		width: 60px;
 		text-align: center;
