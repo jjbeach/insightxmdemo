@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>name of page</title>
+</head>
+<body>
+	<script src="https://checkout.sandbox.dev.clover.com/sdk.js"></script>
+	<script src="https://cdn.polyfill.io/v3/polyfill.min.js"></script>
+	<style>
+	     .topdiv {
+	       maxWidth: 496px;
+	       margin: auto;
+	       padding: 30px 15px 15px;
+	     }
+	</style>
+	<div class="topdiv">
+		<form action="/charge" id="payment-form" method="post" name="payment-form">
+			<div>
+				<div id="amount">
+					<input name="amount" placeholder="Amount">
+				</div>
+			</div>
+			<div>
+				<div id="card-number"></div>
+				<div id="card-number-errors" role="alert"></div>
+			</div>
+			<div>
+				<div id="card-date"></div>
+				<div id="card-date-errors" role="alert"></div>
+			</div>
+			<div>
+				<div id="card-cvv"></div>
+				<div id="card-cvv-errors" role="alert"></div>
+			</div>
+			<div>
+				<div id="card-postal-code"></div>
+				<div id="card-postal-code-errors" role="alert"></div>
+			</div>​
+			<div id="card-response" role="alert"></div>​
+			<div>
+				<button>Submit Payment</button>
+			</div>
+		</form>
+	</div>​
+	<div id="test"></div>​
+	<script type="application/javascript">
+	       const api_key_or_token = "5568a8e0f8f7651c3771a665ee6f3271";
+	       const clover = new Clover(api_key);
+
+	       const elements = clover.elements();
+	       const styles = {
+	         'card-number input': {
+	           'width': '20em',
+	           'font-size': '20px',
+	           'border': '1px gray dotted',
+	           'padding': '3px',
+	           'margin': '3px',
+	           'font-weight': 'bold'
+	         },
+	         'card-number input': {
+	           'background-color': '#BBBBBB'
+	         },
+	         'card-date input': {
+	           'background-color': '#CCCCCC'
+	         },
+	         'card-cvv input': {
+	           'background-color': '#DDDDDD'
+	         },
+	         'card-postal-code input': {
+	           'background-color': '#EEEEEE'
+	         }
+	       };
+
+	       const form = document.getElementById("payment-form");
+	       const cardNumber = elements.create("CARD_NUMBER", styles);
+	       const cardDate = elements.create("CARD_DATE", styles);
+	       const cardCvv = elements.create("CARD_CVV", styles);
+	       const cardPostalCode = elements.create("CARD_POSTAL_CODE", styles);
+	       cardNumber.mount("#card-number");
+	       cardDate.mount("#card-date");
+	       cardCvv.mount("#card-cvv");
+	       cardPostalCode.mount("#card-postal-code");
+
+	       const cardResponse = document.getElementById("card-response");
+	       const displayCardNumberError = document.getElementById("card-number-errors");
+	       const displayCardDateError = document.getElementById("card-date-errors");
+	       const displayCardCvvError = document.getElementById("card-cvv-errors");
+	       const displayCardPostalCodeError = document.getElementById("card-postal-code-errors");
+	       // Handle real-time validation errors from the card element
+	       cardNumber.addEventListener('change', function(event) {
+	         console.log('cardNumber changed');
+	       });
+	       form.addEventListener('submit', function(event) {
+	         event.preventDefault();
+	         // Use the iframe's tokenization method with the user-entered card details
+	         clover.createToken()
+	           .then(function(result) {
+	           if (result.errors) {
+	             Object.values(result.errors).forEach(function (value) {
+	               displayError.textContent = value;
+	             });
+	           } else {
+	             cloverTokenHandler(result.token);
+	           }
+	         });
+	       });
+	       function cloverTokenHandler(token) {
+	         // Insert the token ID into the form so it gets submitted to the server
+	         var form = document.getElementById('payment-form');
+	         var hiddenInput = document.createElement('input');
+	         hiddenInput.setAttribute('type', 'hidden');
+	         hiddenInput.setAttribute('name', 'cloverToken');
+	         hiddenInput.setAttribute('value', token);
+	         form.appendChild(hiddenInput);
+	         console.log(token)
+	   
+	         // Get the current element
+	         var testNode = document.querySelector('#test');
+	         testNode.innerHTML = token;
+	       }
+	</script>
+</body>
+</html>
