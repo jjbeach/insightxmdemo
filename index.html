@@ -1,123 +1,236 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>name of page</title>
+  <title>name of page</title>
 </head>
 <body>
-	<script src="https://checkout.sandbox.dev.clover.com/sdk.js"></script>
-	<script src="https://cdn.polyfill.io/v3/polyfill.min.js"></script>
-	<style>
-	     .topdiv {
-	       maxWidth: 496px;
-	       margin: auto;
-	       padding: 30px 15px 15px;
-	     }
-	</style>
-	<div class="topdiv">
-		<form action="/charge" id="payment-form" method="post" name="payment-form">
-			<div>
-				<div id="amount">
-					<input name="amount" placeholder="Amount">
-				</div>
-			</div>
-			<div>
-				<div id="card-number"></div>
-				<div id="card-number-errors" role="alert"></div>
-			</div>
-			<div>
-				<div id="card-date"></div>
-				<div id="card-date-errors" role="alert"></div>
-			</div>
-			<div>
-				<div id="card-cvv"></div>
-				<div id="card-cvv-errors" role="alert"></div>
-			</div>
-			<div>
-				<div id="card-postal-code"></div>
-				<div id="card-postal-code-errors" role="alert"></div>
-			</div>​
-			<div id="card-response" role="alert"></div>​
-			<div>
-				<button>Submit Payment</button>
-			</div>
-		</form>
-	</div>​
-	<div id="test"></div>​
-	<script type="application/javascript">
-	       const key = "5568a8e0f8f7651c3771a665ee6f3271";
-	       const clover = new Clover(key);
+  <script src="https://checkout.sandbox.dev.clover.com/sdk.js"></script>
+  <script src="https://cdn.polyfill.io/v3/polyfill.min.js"></script>
+  <style>
+    /* Unable to target internal iframe elements from here. Only wrapper elements */
+    #iframe_div input { }
+    #card-number, #card-date, #card-postal-code, #card-cvv {
+      /* Limiting the height will cause iframes to stretch down and block
+         the submit button. This behavior is undocumented. */
+      /*max-height: 30px;*/
+    }
+  </style>
+  <div id="iframe_div">
+    <form action="/charge" id="payment-form" method="post" name="payment-form">
+      <div>
+        <div id="amount_div" hidden>
+          <input name="amount" placeholder="Amount" id="amount">
+        </div>
+      </div>
+      <div>
+        <div id="card-number"></div>
+        <div id="card-number-errors" role="alert"></div>
+      </div>
+      <div>
+        <div id="card-date"></div>
+        <div id="card-date-errors" role="alert"></div>
+      </div>
+      <div>
+        <div id="card-cvv"></div>
+        <div id="card-cvv-errors" role="alert"></div>
+      </div>
+      <div>
+        <div id="card-postal-code"></div>
+        <div id="card-postal-code-errors" role="alert"></div>
+      </div>
+      <div id="card-response" role="alert"></div>
+      <div>
+        <button>Submit Payment</button>
+      </div>
+    </form>
+  </div>
+  <div id="test_token"></div>
+  <div id="test_clover_response"></div>
+  <script type="application/javascript">
+    const DEBUG = false;
 
-	       const elements = clover.elements();
-	       const styles = {
-	         'card-number input': {
-	           'width': '20em',
-	           'font-size': '20px',
-	           'border': '1px gray dotted',
-	           'padding': '3px',
-	           'margin': '3px',
-	           'font-weight': 'bold'
-	         },
-	         'card-number input': {
-	           'background-color': '#BBBBBB'
-	         },
-	         'card-date input': {
-	           'background-color': '#CCCCCC'
-	         },
-	         'card-cvv input': {
-	           'background-color': '#DDDDDD'
-	         },
-	         'card-postal-code input': {
-	           'background-color': '#EEEEEE'
-	         }
-	       };
+    const public_key = "5568a8e0f8f7651c3771a665ee6f3271";
+    const clover = new Clover(public_key);
 
-	       const form = document.getElementById("payment-form");
-	       const cardNumber = elements.create("CARD_NUMBER", styles);
-	       const cardDate = elements.create("CARD_DATE", styles);
-	       const cardCvv = elements.create("CARD_CVV", styles);
-	       const cardPostalCode = elements.create("CARD_POSTAL_CODE", styles);
-	       cardNumber.mount("#card-number");
-	       cardDate.mount("#card-date");
-	       cardCvv.mount("#card-cvv");
-	       cardPostalCode.mount("#card-postal-code");
+    const elements = clover.elements();
+    // https://cssinjs.org/?v=v10.9.0
+    const styles = {
+      'card-number input': {
+        'font-size': '20px',
+        'border': '1px gray dotted',
+        'padding': '3px',
+        'width': '20em',
+        'margin': '3px',
+        'font-weight': 'bold',
+      },
+      'card-number input': {
+        'background-color': '#BBBBBB',
+      },
+      'card-date input': {
+        'background-color': '#CCCCCC',
+      },
+      'card-cvv input': {
+        'background-color': '#DDDDDD',
+      },
+      'card-postal-code input': {
+        'background-color': '#EEEEEE',
+      }
+    };
 
-	       const cardResponse = document.getElementById("card-response");
-	       const displayCardNumberError = document.getElementById("card-number-errors");
-	       const displayCardDateError = document.getElementById("card-date-errors");
-	       const displayCardCvvError = document.getElementById("card-cvv-errors");
-	       const displayCardPostalCodeError = document.getElementById("card-postal-code-errors");
-	       // Handle real-time validation errors from the card element
-	       cardNumber.addEventListener('change', function(event) {
-	         console.log('cardNumber changed');
-	       });
-	       form.addEventListener('submit', function(event) {
-	         event.preventDefault();
-	         // Use the iframe's tokenization method with the user-entered card details
-	         clover.createToken()
-	           .then(function(result) {
-	           if (result.errors) {
-	             Object.values(result.errors).forEach(function (value) {
-	               displayError.textContent = value;
-	             });
-	           } else {
-	             cloverTokenHandler(result.token);
-	           }
-	         });
-	       });
-	       function cloverTokenHandler(token) {
-	         // Insert the token ID into the form so it gets submitted to the server
-	         var form = document.getElementById('payment-form');
-	         var hiddenInput = document.createElement('input');
-	         hiddenInput.setAttribute('type', 'hidden');
-	         hiddenInput.setAttribute('name', 'cloverToken');
-	         hiddenInput.setAttribute('value', token);
-	         form.appendChild(hiddenInput);
-	         console.log(token)
-	   
-	         // Get the current element
-	         var testNode = document.querySelector('#test');
-	         testNode.innerHTML = token;
-	       }
-	</script>
+    const form = document.getElementById("payment-form");
+    const cardNumber = elements.create("CARD_NUMBER", styles);
+    const cardDate = elements.create("CARD_DATE", styles);
+    const cardCvv = elements.create("CARD_CVV", styles);
+    const cardPostalCode = elements.create("CARD_POSTAL_CODE", styles);
+    cardNumber.mount("#card-number");
+    cardDate.mount("#card-date");
+    cardCvv.mount("#card-cvv");
+    cardPostalCode.mount("#card-postal-code");
+
+    const cardResponse = document.getElementById("card-response");
+    const displayCardNumberError = document.getElementById("card-number-errors");
+    const displayCardDateError = document.getElementById("card-date-errors");
+    const displayCardCvvError = document.getElementById("card-cvv-errors");
+    const displayCardPostalCodeError = document.getElementById("card-postal-code-errors");
+
+    // Handle real-time validation errors from the card element
+    cardNumber.addEventListener('change', function(event) {
+     console.log('cardNumber changed');
+    });
+
+    form.addEventListener('submit', function(event) {
+      event.preventDefault();
+      // Use the iframe's tokenization method with the user-entered card details
+      clover.createToken()
+        .then(function(result) {
+        if (result.errors) {
+          console.log("Errors!");
+          let i = 1;
+          Object.values(result.errors).forEach(function (value) {
+            console.log("Error " + i + " value: " + value);
+            i++;
+            // displayError.textContent = value; // Todo
+          });
+        } else {
+          cloverTokenHandler(result.token);
+        }
+      });
+    });
+
+    setAmountFromURL();
+
+    function cloverTokenHandler(token) {
+      // Insert the token ID into the form so it gets submitted to the server
+      var form = document.getElementById('payment-form');
+      var hiddenInput = document.createElement('input');
+      hiddenInput.setAttribute('type', 'hidden');
+      hiddenInput.setAttribute('name', 'cloverToken');
+      hiddenInput.setAttribute('value', token);
+      form.appendChild(hiddenInput);
+      console.log(token);
+
+      if (DEBUG) {
+        displayTestToken(token);
+        sendChargeToApi(token);
+      }
+    }
+
+    // For testing only
+    function displayTestToken(token) {
+      console.log("displayTestToken()");
+      var testNode = document.querySelector('#test_token');
+      testNode.innerHTML = "token: "+token;
+    }
+
+    // For testing only
+    function sendChargeToApi(token) {
+      console.log("sendChargeToApi()");
+
+      var testChargeResponseNode = document.getElementById('test_clover_response');
+      var amount = document.getElementById('amount').value;
+
+      postChargeToken(token, amount)
+        .then(function(res) {
+          console.log(res);
+          testChargeResponseNode.innerHTML = "res: "+res;
+        })
+        .catch(function(err) {
+          console.log(err);
+          testChargeResponseNode.innerHTML = "err: "+err;
+        })
+        .finally(function() {
+        });
+    }
+
+    /*
+    This method will call a Google Cloud Function, which will then
+    call the Clover /v1/charges endpoint and return a success/fail response.
+
+    https://docs.clover.com/docs/ecommerce-accepting-payments
+    */
+    function getUrl() {
+      // Local url from `npm run serve`  && deployed URL
+      // return "http://localhost:5001/curated-drinks/us-central1/postCloverV1Charge";
+      return "https://us-central1-curated-drinks.cloudfunctions.net/postCloverV1Charge";
+    }
+
+    function postChargeToken(source_token, amount) {
+      return new Promise(function (resolve, reject) {
+        const url = getUrl();
+
+        // Public token from this url:
+        // https://sandbox.dev.clover.com/setupapp/m/4VRZ26CJM1PY1/ecomm-api-tokens
+        const auth_key = "bad67f54-1327-e907-1c1f-9f4227595052";
+
+        let xhr = new XMLHttpRequest();
+        xhr.open("POST", url, true);
+        xhr.setRequestHeader('content-type', 'application/json');
+        xhr.setRequestHeader('accept', 'application/json');
+        xhr.setRequestHeader('Access-Control-Allow-Origin', '*');
+
+        const data = {
+          "amount": 11.23,
+          //"amount": amount,
+          "source_token": source_token,
+        };
+
+        xhr.onload = function () {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            // resolve(xhr);
+            resolve(xhr.response);
+          } else {
+            reject({
+              status: xhr.status,
+              statusText: xhr.statusText,
+              xhr: xhr
+            });
+          }
+        };
+        xhr.onerror = function () {
+          reject({
+            status: xhr.status,
+            statusText: xhr.statusText,
+            xhr: xhr
+          });
+        };
+
+        xhr.send(JSON.stringify(data));
+      });
+    }
+
+    function setAmountFromURL() {
+      const amount = getParams()['amount'];
+      console.log("Setting input amount to: " + amount);
+      document.getElementById('amount').value = amount;
+    }
+
+    function getParams() {
+      const params = new Proxy(new URLSearchParams(window.location.search), {
+        get: (searchParams, prop) => searchParams.get(prop),
+      });
+      return params;
+    }
+
+  </script>
 </body>
 </html>
