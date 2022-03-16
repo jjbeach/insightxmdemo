@@ -1,79 +1,217 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>name of page</title>
 </head>
 <body>
   <script src="https://checkout.sandbox.dev.clover.com/sdk.js"></script>
   <script src="https://cdn.polyfill.io/v3/polyfill.min.js"></script>
   <style>
-    /* Unable to target internal iframe elements from here. Only wrapper elements */
-    #iframe_div input { }
-    #card-number, #card-date, #card-postal-code, #card-cvv {
-      /* Limiting the height will cause iframes to stretch down and block
-         the submit button. This behavior is undocumented. */
-      /*max-height: 30px;*/
+    html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td,article,aside,canvas,details,embed,figure,figcaption,footer,header,hgroup,menu,nav,output,ruby,section,summary,time,mark,audio,video{border:0;font-size:100%;font:inherit;vertical-align:baseline;margin:0;padding:0}article,aside,details,figcaption,figure,footer,header,hgroup,menu,nav,section{display:block}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:none}table{border-collapse:collapse;border-spacing:0}
+    *, ::after, ::before {
+      box-sizing: border-box;
     }
+    button, input, optgroup, select, textarea {
+      margin: 0;
+      font-family: inherit;
+      font-size: inherit;
+      line-height: inherit;
+    }
+    body {
+      padding: 6%;
+    }
+
+    iframe {
+      height: 40px !important;
+      display: block;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 786px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .flex {
+      display: flex;
+      width: 100%;
+    }
+
+    .flex-3 {
+      flex-basis: calc(100% / 3);
+    }
+
+    button {
+      display: inline-block;
+      font-weight: 400;
+      line-height: 1.5;
+      color: #212529;
+      text-align: center;
+      text-decoration: none;
+      vertical-align: middle;
+      cursor: pointer;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      user-select: none;
+      background-color: transparent;
+      border: 1px solid transparent;
+      padding: 0.375rem 0.75rem;
+      font-size: 1.2rem;
+      border-radius: 0.25rem;
+      transition: color .15s ease-in-out,
+      background-color .15s ease-in-out,
+      border-color .15s ease-in-out,
+      box-shadow .15s ease-in-out;
+      color: #fff;
+      background-color: #0d6efd;
+      border-color: #0d6efd;
+    }
+
+    .button-div {
+      text-align: center;
+    }
+
+    .group {
+      margin-bottom: 40px;
+    }
+
+    .amount-group {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 20px;
+      margin-bottom: 40px;
+      border: 1px dashed #456789;
+      background-color: #ebf6ff;
+    }
+
+    .amount-group .text {
+      padding-right: 8px;
+    }
+
   </style>
-  <div id="iframe_div">
-    <form action="/charge" id="payment-form" method="post" name="payment-form">
-      <div>
-        <div id="amount_div" hidden>
-          <input name="amount" placeholder="Amount" id="amount">
+
+  <div class="container">
+    <div id="iframe_div">
+      <form action="/charge" id="payment-form" method="post" name="payment-form">
+       
+        <div class="group">
+          <div id="card-number" class="flex-1"></div>
+          <div id="card-number-errors" role="alert"></div>
         </div>
-      </div>
-      <div>
-        <div id="card-number"></div>
-        <div id="card-number-errors" role="alert"></div>
-      </div>
-      <div>
-        <div id="card-date"></div>
-        <div id="card-date-errors" role="alert"></div>
-      </div>
-      <div>
-        <div id="card-cvv"></div>
-        <div id="card-cvv-errors" role="alert"></div>
-      </div>
-      <div>
-        <div id="card-postal-code"></div>
-        <div id="card-postal-code-errors" role="alert"></div>
-      </div>
-      <div id="card-response" role="alert"></div>
-      <div>
-        <button>Submit Payment</button>
-      </div>
-    </form>
+
+        <div class="group">
+          <div class="flex">
+            <div id="card-date" class="flex-3"></div>
+            <div id="card-cvv" class="flex-3"></div>
+            <div id="card-postal-code" class="flex-3"></div>
+          </div>
+
+          <div id="card-date-errors" role="alert"></div>
+          <div id="card-cvv-errors" role="alert"></div>
+          <div id="card-postal-code-errors" role="alert"></div>
+        </div>
+       
+        <div id="card-response" role="alert"></div>
+
+        <div class="amount-group">
+          <div class="text">Total amount to pay:</div>
+          <div id="amount_div"></div>
+        </div>
+
+        <div class="group button-div">
+          <button>Submit Payment</button>
+        </div>
+      </form>
+    </div>
   </div>
+
   <div id="test_token"></div>
   <div id="test_clover_response"></div>
+
   <script type="application/javascript">
-    const DEBUG = false;
+    const DEBUG = true;
 
     const public_key = "5568a8e0f8f7651c3771a665ee6f3271";
     const clover = new Clover(public_key);
 
     const elements = clover.elements();
     // https://cssinjs.org/?v=v10.9.0
+   
     const styles = {
       'card-number input': {
-        'font-size': '20px',
-        'border': '1px gray dotted',
-        'padding': '3px',
-        'width': '20em',
-        'margin': '3px',
-        'font-weight': 'bold',
+        'display' : 'block',
+        'width': '100%',
+        'color': '#212529',
+        'font-size': '1rem',
+        'font-weight': 400,
+        'line-height': 1.5,
+        'border': '1px solid #ced4da',
+        'border-radius': '0.25rem',
+        'padding': '0.375rem 0.75rem',
+        'background-color': '#fff',
+        '-webkit-appearance': 'none',
+        '-moz-appearance': 'none',
+        'appearance': 'none',
+        'background-clip': 'padding-box',
+        'height': '38px'
       },
-      'card-number input': {
-        'background-color': '#BBBBBB',
+      'card-number ifrme': {
+        'background-color': 'green',
       },
+
       'card-date input': {
-        'background-color': '#CCCCCC',
+        'display' : 'block',
+        'width': '100%',
+        'color': '#212529',
+        'font-size': '1rem',
+        'font-weight': 400,
+        'line-height': 1.5,
+        'border': '1px solid #ced4da',
+        'border-radius': '0.25rem',
+        'padding': '0.375rem 0.75rem',
+        'background-color': '#fff',
+        '-webkit-appearance': 'none',
+        '-moz-appearance': 'none',
+        'appearance': 'none',
+        'background-clip': 'padding-box',
+        'height': '38px'
       },
       'card-cvv input': {
-        'background-color': '#DDDDDD',
+        'display' : 'block',
+        'width': '100%',
+        'color': '#212529',
+        'font-size': '1rem',
+        'font-weight': 400,
+        'line-height': 1.5,
+        'border': '1px solid #ced4da',
+        'border-radius': '0.25rem',
+        'padding': '0.375rem 0.75rem',
+        'background-color': '#fff',
+        '-webkit-appearance': 'none',
+        '-moz-appearance': 'none',
+        'appearance': 'none',
+        'background-clip': 'padding-box',
+        'height': '38px'
       },
       'card-postal-code input': {
-        'background-color': '#EEEEEE',
+        'display' : 'block',
+        'width': '100%',
+        'color': '#212529',
+        'font-size': '1rem',
+        'font-weight': 400,
+        'line-height': 1.5,
+        'border': '1px solid #ced4da',
+        'border-radius': '0.25rem',
+        'padding': '0.375rem 0.75rem',
+        'background-color': '#fff',
+        '-webkit-appearance': 'none',
+        '-moz-appearance': 'none',
+        'appearance': 'none',
+        'background-clip': 'padding-box',
+        'height': '38px'
       }
     };
 
@@ -147,7 +285,7 @@
       console.log("sendChargeToApi()");
 
       var testChargeResponseNode = document.getElementById('test_clover_response');
-      var amount = document.getElementById('amount').value;
+      var amount = document.getElementById('amount_div').value;
 
       postChargeToken(token, amount)
         .then(function(res) {
@@ -221,7 +359,7 @@
     function setAmountFromURL() {
       const amount = getParams()['amount'];
       console.log("Setting input amount to: " + amount);
-      document.getElementById('amount').value = amount;
+      document.getElementById('amount_div').innerHTML = `$${amount}`;
     }
 
     function getParams() {
